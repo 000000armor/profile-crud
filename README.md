@@ -96,3 +96,25 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+TODO
+
+POST /user
+
+REQUEST
+
+- логин
+- email
+- пароль
+- возраст
+- описание о себе (до 1000 символов)
+
+RESPONSE
+Access_token и refresh_token: Если срок access токена истёк - должна вылетать ошибка 401 и пользователь должен получить
+новый токен с помощью refresh токена.
+
+GET /user/info
+
+Также пользователь должен иметь возможность получить информацию о себе (о своем пользователе): все поля. В роуте получения информации о себе не должно быть параметра “:id”. Должно быть, например, так “/profile/my”, а не “profile/:id” (где “:id” это айди пользователя)
+
+#
