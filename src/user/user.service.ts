@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from '@generated/prisma/client';
-// import { USER_ID_GENERATOR } from './user.tokens';
+import { USER_REPOSITORY } from './user.repository';
+import { type IdGenerator, UUID_GENERATOR } from 'src/common/id-generator';
+import { type UserRepository } from './user.repository';
 
 export type CreateUserResult =
   { ok: true; user: User } | { ok: false; error: 'Creation Error' };
@@ -9,21 +11,27 @@ export type CreateUserResult =
 @Injectable()
 export class UserService {
   constructor(
-    // TODO Add id generator to repo
-    // @Inject(USER_ID_GENERATOR)
-    // private readonly idGenerator: EventIdGenerator,
+    @Inject(USER_REPOSITORY) private repo: UserRepository,
+    @Inject(UUID_GENERATOR) private uuidGenerator: IdGenerator,
   ) {}
-  createUser(createUserDto: CreateUserDto): CreateUserResult {
-    // TODO
-    // const id = this.idGenerator.generate();
-    const id = 'id';
+  async createUser(dto: CreateUserDto): Promise<CreateUserResult> {
+    try {
+      const id = this.uuidGenerator.generate();
 
-    return {
-      ok: true,
-      user: {
-        ...createUserDto,
+      const user = await this.repo.create({
         id,
-      },
-    };
+        ...dto,
+      });
+
+      return {
+        ok: true,
+        user,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Creation Error',
+      };
+    }
   }
 }

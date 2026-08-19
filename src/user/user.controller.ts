@@ -6,7 +6,7 @@ import {
   Post,
   UsePipes,
 } from '@nestjs/common';
-import { ZodValidationPipe } from '../pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { type CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
 import { UserService } from './user.service';
 
@@ -17,8 +17,8 @@ export class UserController {
   @Post()
   @HttpCode(201)
   @UsePipes(new ZodValidationPipe(CreateUserSchema))
-  createUser(@Body() createUserDto: CreateUserDto) {
-    const result = this.userService.createUser(createUserDto);
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    const result = await this.userService.createUser(createUserDto);
 
     if (result.ok) {
       return result.user;

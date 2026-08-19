@@ -1,0 +1,8 @@
+import { User } from '@generated/prisma/client';
+import { CreateUserDto } from './dto/create-user.dto';
+
+export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
+
+export interface UserRepository {
+  create(data: CreateUserDto & { id: string }): Promise<User>;
+}
