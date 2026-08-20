@@ -5,4 +5,6 @@ export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
 export interface UserRepository {
   create(data: CreateUserDto & { id: string }): Promise<User>;
+  findById({ id }: { id: string }): Promise<User | null>;
+  findByLogin({ login }: { login: string }): Promise<User | null>;
 }

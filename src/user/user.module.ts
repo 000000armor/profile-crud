@@ -12,5 +12,6 @@ import { USER_REPOSITORY } from './user.repository';
     { provide: USER_REPOSITORY, useClass: PrismaUserRepository },
     { provide: UUID_GENERATOR, useClass: UuidGenerator },
   ],
+  exports: [USER_REPOSITORY],
 })
 export class UserModule {}

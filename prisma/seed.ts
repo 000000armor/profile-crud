@@ -2,6 +2,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/generated/prisma/client';
+import bcrypt from 'bcrypt';
 
 const connectionString = process.env.DATABASE_URL;
 const adapter = new PrismaPg({ connectionString });
@@ -13,26 +14,26 @@ async function main() {
     data: [
       {
         id: crypto.randomUUID(),
-        login: 'alice',
+        login: 'alice123',
         email: 'alice@mail.com',
         description: 'Alice description',
-        password: 'hash',
+        password: await bcrypt.hash('password123', 10),
         age: 21,
       },
       {
         id: crypto.randomUUID(),
-        login: 'bob',
+        login: 'bob123',
         email: 'bob@mail.com',
         description: 'Bob description',
-        password: 'hash',
+        password: await bcrypt.hash('password123', 10),
         age: 22,
       },
       {
         id: crypto.randomUUID(),
-        login: 'bib',
+        login: 'bib123',
         email: 'bib@mail.com',
         description: 'Bib description',
-        password: 'hash',
+        password: await bcrypt.hash('password123', 10),
         age: 22,
       },
     ],

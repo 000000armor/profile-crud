@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -9,8 +10,8 @@ datasource db {
 
 model User {
   id           String @unique
-  login        String
-  email        String
+  login        String @unique
+  email        String @unique
   password     String
   age          Int
   description  String

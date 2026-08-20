@@ -4,6 +4,7 @@ import { User } from '@generated/prisma/client';
 import { USER_REPOSITORY } from './user.repository';
 import { type IdGenerator, UUID_GENERATOR } from 'src/common/id-generator';
 import { type UserRepository } from './user.repository';
+import bcrypt from 'bcrypt';
 
 export type CreateUserResult =
   { ok: true; user: User } | { ok: false; error: 'Creation Error' };
@@ -17,10 +18,13 @@ export class UserService {
   async createUser(dto: CreateUserDto): Promise<CreateUserResult> {
     try {
       const id = this.uuidGenerator.generate();
+      const { password, ...restUser } = dto;
+      const passwordHash = await bcrypt.hash(password, 10);
 
       const user = await this.repo.create({
         id,
-        ...dto,
+        password: passwordHash,
+        ...restUser,
       });
 
       return {
