@@ -24,6 +24,8 @@
       "@generated/*": ["src/generated/*"],
       "@common/*": ["src/common/*"],
       "@user/*": ["src/user/*"],
+      "@token/*": ["src/token/*"],
+      "@prisma/*": ["src/prisma/*"],
     },
   },
 }

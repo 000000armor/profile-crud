@@ -1,11 +1,12 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AuthTokensDto } from './dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { USER_REPOSITORY, UserRepository } from '@user/user.repository';
-import { JWT_SECRET, JWT_REFRESH_SECRET } from '@common/constants';
+import { JWT_REFRESH_SECRET } from '@common/constants';
 import { LoginDto } from './dto/login.dto';
 import bcrypt from 'bcrypt';
+import { TokenService } from '@token/token.service';
+import { AuthTokensDto } from '@token/dto/token.dto';
 
 type JwtPayload = {
   sub: string;
@@ -17,64 +18,48 @@ export class AuthService {
   constructor(
     private config: ConfigService,
     private jwtService: JwtService,
+    private tokenService: TokenService,
     @Inject(USER_REPOSITORY) private user: UserRepository,
   ) {}
 
-  async login(dto: LoginDto) {
-    try {
-      const user = await this.user.findByLogin({ login: dto.login });
+  async login(dto: LoginDto): Promise<AuthTokensDto> {
+    const user = await this.user.findByLogin({ login: dto.login });
 
-      if (!user) {
-        throw Error();
-      }
-
-      const ok = await bcrypt.compare(dto.password, user.password);
-
-      if (!ok) {
-        throw Error();
-      }
-
-      return this.issueToken({ sub: user.id, login: user.login });
-    } catch (e) {
-      console.error(e);
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    const passwordMatches = await bcrypt.compare(dto.password, user.password);
+
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.tokenService.issueTokens({ sub: user.id, login: user.login });
   }
 
   async refresh(refreshToken: string): Promise<AuthTokensDto> {
+    const refreshSecret = this.config.getOrThrow<string>(JWT_REFRESH_SECRET);
+
+    let payload: JwtPayload;
+
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        refreshToken,
-        {
-          secret: this.config.get<string>(JWT_REFRESH_SECRET),
-        },
-      );
-
-      const user = await this.user.findById({ id: payload.sub });
-
-      if (!user) {
-        throw Error();
-      }
-
-      return this.issueToken(payload);
+      payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
+        secret: refreshSecret,
+      });
     } catch {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid refresh token');
     }
-  }
 
-  private async issueToken(payload: {
-    login: string;
-    sub: string;
-  }): Promise<AuthTokensDto> {
-    return {
-      acessToken: await this.jwtService.signAsync(payload, {
-        secret: this.config.get<string>(JWT_SECRET),
-        expiresIn: '15m',
-      }),
-      refreshToken: await this.jwtService.signAsync(payload, {
-        secret: this.config.get<string>(JWT_REFRESH_SECRET),
-        expiresIn: '7d',
-      }),
-    };
+    const user = await this.user.findById({ id: payload.sub });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    return this.tokenService.issueTokens({
+      sub: user.id,
+      login: user.login,
+    });
   }
 }
