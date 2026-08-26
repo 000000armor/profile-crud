@@ -19,6 +19,7 @@ async function main() {
         description: 'Alice description',
         password: await bcrypt.hash('password123', 10),
         age: 21,
+        deletedAt: null,
       },
       {
         id: crypto.randomUUID(),
@@ -27,6 +28,7 @@ async function main() {
         description: 'Bob description',
         password: await bcrypt.hash('password123', 10),
         age: 22,
+        deletedAt: null,
       },
       {
         id: crypto.randomUUID(),
@@ -35,6 +37,7 @@ async function main() {
         description: 'Bib description',
         password: await bcrypt.hash('password123', 10),
         age: 22,
+        deletedAt: '2026-08-23T21:00:00.000Z',
       },
     ],
   });

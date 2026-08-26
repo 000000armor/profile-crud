@@ -6,15 +6,21 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from '@generated/prisma/client';
-import { USER_REPOSITORY, UserAlreadyExistsError } from './user.repository';
+import {
+  UpdateUserData,
+  USER_REPOSITORY,
+  UserAlreadyExistsError,
+  UserNotFoundError,
+} from './user.repository';
 import { type IdGenerator, UUID_GENERATOR } from 'src/common/id-generator';
 import { type UserRepository } from './user.repository';
 import bcrypt from 'bcrypt';
 import { TokenService } from '@token/token.service';
 import { AuthTokensDto } from '@token/dto/token.dto';
 import { FindUserQueryDto } from './dto/find-users-query.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
-type SafeUser = Omit<User, 'password'>;
+export type SafeUser = Omit<User, 'password' | 'deletedAt'>;
 
 export type CreateUserResult = {
   user: SafeUser;
@@ -68,7 +74,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User is not exist');
     }
-    const { password: _, ...safeUser } = user;
+    const { password: _password, deletedAt: _deletedAt, ...safeUser } = user;
 
     return safeUser;
   }
@@ -83,7 +89,7 @@ export class UserService {
     });
 
     const safeUsers: SafeUser[] = users.map(
-      ({ password: _, ...safeUser }) => safeUser,
+      ({ password: _password, deletedAt: _deletedAt, ...safeUser }) => safeUser,
     );
 
     const totalPages = Math.ceil(total / limit);
@@ -92,5 +98,50 @@ export class UserService {
       users: safeUsers,
       pagination: { page, limit, total, totalPages },
     };
+  }
+
+  async softDelete(id: string): Promise<void> {
+    const result = await this.repo.softDelete(id);
+
+    if (!result) {
+      throw new NotFoundException('User not found');
+    }
+  }
+
+  async updateUser({
+    id,
+    updateUserDto,
+  }: {
+    id: string;
+    updateUserDto: UpdateUserDto;
+  }): Promise<SafeUser> {
+    const { password, ...restUser } = updateUserDto;
+
+    const updateUserData: UpdateUserData = password
+      ? {
+          ...restUser,
+          password: await bcrypt.hash(password, 10),
+        }
+      : restUser;
+
+    try {
+      const user = await this.repo.updateUser({
+        id,
+        updateUserData,
+      });
+
+      const { password: _password, deletedAt: _deletedAt, ...safeUser } = user;
+
+      return safeUser;
+    } catch (e) {
+      if (e instanceof UserAlreadyExistsError) {
+        throw new ConflictException('Login or email already exists');
+      }
+      if (e instanceof UserNotFoundError) {
+        throw new NotFoundException('User not found');
+      }
+
+      throw e;
+    }
   }
 }

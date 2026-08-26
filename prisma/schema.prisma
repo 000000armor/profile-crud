@@ -15,4 +15,5 @@ model User {
   password     String
   age          Int
   description  String
+  deletedAt    DateTime?
 }

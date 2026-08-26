@@ -3,6 +3,8 @@ import {
   UserRepository,
   UserAlreadyExistsError,
   UsersParams,
+  UserNotFoundError,
+  UpdateUserData,
 } from './user.repository';
 import { Prisma, User } from '@generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,7 +17,9 @@ export class PrismaUserRepository implements UserRepository {
 
   async create(data: CreateUserDto & { id: string }): Promise<User> {
     try {
-      const result = await this.prisma.user.create({ data });
+      const result = await this.prisma.user.create({
+        data: { ...data, deletedAt: null },
+      });
       return result;
     } catch (e) {
       if (
@@ -29,7 +33,9 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async findById({ id }: { id: string }): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id, deletedAt: null },
+    });
 
     if (!user) {
       return null;
@@ -39,7 +45,9 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async findByLogin({ login }: { login: string }): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({ where: { login } });
+    const user = await this.prisma.user.findUnique({
+      where: { login, deletedAt: null },
+    });
 
     if (!user) {
       return null;
@@ -53,14 +61,17 @@ export class PrismaUserRepository implements UserRepository {
     take,
     login,
   }: UsersParams): Promise<{ users: User[]; total: number }> {
-    const where: UserWhereInput = login
-      ? {
-          login: {
-            contains: login,
-            mode: 'insensitive',
-          },
-        }
-      : {};
+    const where: UserWhereInput = {
+      deletedAt: null,
+      ...(login
+        ? {
+            login: {
+              contains: login,
+              mode: 'insensitive',
+            },
+          }
+        : {}),
+    };
 
     const [users, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
@@ -76,5 +87,51 @@ export class PrismaUserRepository implements UserRepository {
       users,
       total,
     };
+  }
+
+  async softDelete(id: string): Promise<boolean> {
+    const result = await this.prisma.user.updateMany({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    return result.count > 0;
+  }
+
+  async updateUser({
+    id,
+    updateUserData,
+  }: {
+    id: string;
+    updateUserData: UpdateUserData;
+  }): Promise<User> {
+    try {
+      return await this.prisma.user.update({
+        where: {
+          id,
+          deletedAt: null,
+        },
+        data: {
+          ...updateUserData,
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new UserAlreadyExistsError();
+        }
+
+        if (e.code === 'P2025') {
+          throw new UserNotFoundError();
+        }
+      }
+
+      throw e;
+    }
   }
 }
