@@ -5,8 +5,18 @@ export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
 export class UserAlreadyExistsError extends Error {}
 
+export type UsersParams = {
+  skip: number;
+  take: number;
+  login?: string;
+};
+
 export interface UserRepository {
   create(data: CreateUserDto & { id: string }): Promise<User>;
   findById({ id }: { id: string }): Promise<User | null>;
   findByLogin({ login }: { login: string }): Promise<User | null>;
+  findUsers(parms: UsersParams): Promise<{
+    users: User[];
+    total: number;
+  }>;
 }

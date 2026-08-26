@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { UserRepository, UserAlreadyExistsError } from './user.repository';
+import {
+  UserRepository,
+  UserAlreadyExistsError,
+  UsersParams,
+} from './user.repository';
 import { Prisma, User } from '@generated/prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from '@prisma/prisma.service';
+import { UserWhereInput } from '@generated/prisma/models';
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -41,5 +46,35 @@ export class PrismaUserRepository implements UserRepository {
     }
 
     return user;
+  }
+
+  async findUsers({
+    skip,
+    take,
+    login,
+  }: UsersParams): Promise<{ users: User[]; total: number }> {
+    const where: UserWhereInput = login
+      ? {
+          login: {
+            contains: login,
+            mode: 'insensitive',
+          },
+        }
+      : {};
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { id: 'asc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      users,
+      total,
+    };
   }
 }

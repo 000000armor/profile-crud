@@ -1,7 +1,21 @@
-import { Body, Controller, HttpCode, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { type CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
 import { UserService } from './user.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import {
+  FindUserQueryDto,
+  FindUserQuerySchema,
+} from './dto/find-users-query.dto';
 
 @Controller('user')
 export class UserController {
@@ -17,5 +31,14 @@ export class UserController {
       user: result.user,
       ...result.tokens,
     };
+  }
+
+  @Get()
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async findUsers(
+    @Query(new ZodValidationPipe(FindUserQuerySchema)) query: FindUserQueryDto,
+  ) {
+    return this.userService.findUsers(query);
   }
 }

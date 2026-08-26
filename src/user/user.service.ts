@@ -12,6 +12,7 @@ import { type UserRepository } from './user.repository';
 import bcrypt from 'bcrypt';
 import { TokenService } from '@token/token.service';
 import { AuthTokensDto } from '@token/dto/token.dto';
+import { FindUserQueryDto } from './dto/find-users-query.dto';
 
 type SafeUser = Omit<User, 'password'>;
 
@@ -70,5 +71,26 @@ export class UserService {
     const { password: _, ...safeUser } = user;
 
     return safeUser;
+  }
+
+  async findUsers({ page, limit, login }: FindUserQueryDto) {
+    const skip = (page - 1) * limit;
+
+    const { users, total } = await this.repo.findUsers({
+      skip,
+      take: limit,
+      login,
+    });
+
+    const safeUsers: SafeUser[] = users.map(
+      ({ password: _, ...safeUser }) => safeUser,
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      users: safeUsers,
+      pagination: { page, limit, total, totalPages },
+    };
   }
 }
