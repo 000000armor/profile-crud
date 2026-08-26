@@ -13,6 +13,13 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { UpdateUserDto, UpdateUserSchema } from './dto/update-user.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
+import { UpdateUserResponseDto } from './dto/update-response.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 export type AuthenticatedRequest = Request & {
   user: {
@@ -21,10 +28,16 @@ export type AuthenticatedRequest = Request & {
   };
 };
 
+@ApiBearerAuth()
 @Controller('profile')
 export class ProfileController {
   constructor(private userService: UserService) {}
+
   @Get('my')
+  @ApiOkResponse({
+    type: UserResponseDto,
+    description: 'Current user profile',
+  })
   @UseGuards(JwtAuthGuard)
   async getUsersProfile(@Req() request: AuthenticatedRequest) {
     const id = request.user.id;
@@ -36,6 +49,9 @@ export class ProfileController {
 
   @Delete('my')
   @HttpCode(204)
+  @ApiNoContentResponse({
+    description: 'Profile soft-deleted',
+  })
   @UseGuards(JwtAuthGuard)
   async deleteMyProfile(@Req() request: AuthenticatedRequest): Promise<void> {
     await this.userService.softDelete(request.user.id);
@@ -43,6 +59,10 @@ export class ProfileController {
 
   @Patch('my')
   @HttpCode(200)
+  @ApiOkResponse({
+    type: UpdateUserResponseDto,
+    description: 'User data',
+  })
   @UseGuards(JwtAuthGuard)
   async updateUser(
     @Req() request: AuthenticatedRequest,

@@ -9,13 +9,20 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { type CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
+import { CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import {
   FindUserQueryDto,
   FindUserQuerySchema,
 } from './dto/find-users-query.dto';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
+import { FindUserResponseDto } from './dto/find-user-response.dto';
+import { CreateUserResponseDto } from './dto/create-user-response.dto';
 
 @Controller('user')
 export class UserController {
@@ -23,6 +30,10 @@ export class UserController {
 
   @Post()
   @HttpCode(201)
+  @ApiCreatedResponse({
+    type: CreateUserResponseDto,
+    description: 'Created user and tokens issued',
+  })
   @UsePipes(new ZodValidationPipe(CreateUserSchema))
   async createUser(@Body() createUserDto: CreateUserDto) {
     const result = await this.userService.createUser(createUserDto);
@@ -33,8 +44,13 @@ export class UserController {
     };
   }
 
+  @ApiBearerAuth()
   @Get()
   @HttpCode(200)
+  @ApiOkResponse({
+    type: FindUserResponseDto,
+    description: 'Multiple users and pagination data',
+  })
   @UseGuards(JwtAuthGuard)
   async findUsers(
     @Query(new ZodValidationPipe(FindUserQuerySchema)) query: FindUserQueryDto,

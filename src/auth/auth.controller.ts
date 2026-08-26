@@ -5,6 +5,7 @@ import { LoginDto, LoginSchema } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { AuthTokensDto } from '@token/dto/token.dto';
 import { RefreshDto, RefreshSchema } from '@token/dto/refresh.dto';
+import { ApiOkResponse } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +13,9 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @ApiOkResponse({
+    type: AuthTokensDto,
+  })
   @ZodSerializerDto(AuthTokensDto)
   async login(@Body(new ZodValidationPipe(LoginSchema)) dto: LoginDto) {
     return this.authService.login(dto);
@@ -19,6 +23,9 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(200)
+  @ApiOkResponse({
+    type: AuthTokensDto,
+  })
   @ZodSerializerDto(AuthTokensDto)
   async refresh(@Body(new ZodValidationPipe(RefreshSchema)) dto: RefreshDto) {
     return this.authService.refresh(dto.refreshToken);

@@ -1,3 +1,4 @@
+import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 export const FindUserQuerySchema = z.object({
@@ -6,4 +7,4 @@ export const FindUserQuerySchema = z.object({
   login: z.string().trim().min(1).optional(),
 });
 
-export type FindUserQueryDto = z.infer<typeof FindUserQuerySchema>;
+export class FindUserQueryDto extends createZodDto(FindUserQuerySchema) {}
