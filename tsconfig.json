@@ -26,6 +26,7 @@
       "@user/*": ["src/user/*"],
       "@token/*": ["src/token/*"],
       "@prisma/*": ["src/prisma/*"],
+      "@auth/*": ["src/auth/*"],
     },
   },
 }

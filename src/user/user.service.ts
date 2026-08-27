@@ -12,7 +12,7 @@ import {
   UserAlreadyExistsError,
   UserNotFoundError,
 } from './user.repository';
-import { type IdGenerator, UUID_GENERATOR } from 'src/common/id-generator';
+import { type IdGenerator, UUID_GENERATOR } from '@common/id-generator';
 import { type UserRepository } from './user.repository';
 import bcrypt from 'bcrypt';
 import { TokenService } from '@token/token.service';

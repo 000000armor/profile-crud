@@ -8,10 +8,10 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
-import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { CreateUserDto, CreateUserSchema } from './dto/create-user.dto';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
 import {
   FindUserQueryDto,
   FindUserQuerySchema,

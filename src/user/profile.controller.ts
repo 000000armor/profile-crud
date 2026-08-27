@@ -9,7 +9,7 @@ import {
   Body,
 } from '@nestjs/common';
 import { SafeUser, UserService } from './user.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { UpdateUserDto, UpdateUserSchema } from './dto/update-user.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
