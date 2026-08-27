@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pg-hw
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,
@@ -20,6 +19,14 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@generated/*": ["src/generated/*"],
+      "@common/*": ["src/common/*"],
+      "@user/*": ["src/user/*"],
+      "@token/*": ["src/token/*"],
+      "@prisma/*": ["src/prisma/*"],
+      "@auth/*": ["src/auth/*"],
+    },
+  },
 }
